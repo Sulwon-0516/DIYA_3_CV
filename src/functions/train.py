@@ -1,6 +1,6 @@
 import _init_paths
 
-import torchvision
+#import torchvision
 import torch
 import torch.nn as nn
 import torch.functional as F
@@ -22,9 +22,9 @@ CFG.model_size = 50
 CFG.input_dim = [28,28]
 
 CFG.EPOCH = 200
-CFG.batch_size = 64
+CFG.batch_size = 96
 
-CFG.LR = 1e-3
+CFG.LR = 5e-4
 CFG.weight_decay = 1e-4
 CFG.LR_milestones = [210]
 CFG.LR_decayrate = 0.1
@@ -34,7 +34,7 @@ CFG.inference_bsize = 128
 
 
 
-g_device = torch.device("cuda:1") if torch.cuda.is_available() else torch.device("cpu")
+g_device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 def train(device = g_device, train_cfg = CFG, multi_gpu = Multi_GPU):
     
@@ -45,13 +45,13 @@ def train(device = g_device, train_cfg = CFG, multi_gpu = Multi_GPU):
     
     
     # define dataloader
-    train_data = my_dataloader(True,False)
+    train_data = my_dataloader(True,False,True)
     train_dataloader = DataLoader(
         dataset = train_data, 
         shuffle = True,
         batch_size = train_cfg.batch_size)
     
-    val_data = my_dataloader(True, True)
+    val_data = my_dataloader(True, False,False)
     val_dataloader = DataLoader(
         dataset = val_data, 
         shuffle = False,

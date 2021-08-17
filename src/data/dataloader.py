@@ -21,20 +21,26 @@ GRAPH_PATH = os.path.join(DATASET_PATH, "graphs/")
 
 VAL_PATH = os.path.join(DATASET_PATH,"splitted/82val.csv")
 TRA_PATH = os.path.join(DATASET_PATH,"splitted/82train.csv")
+GEN_PATH = os.path.join(DATASET_PATH,"generated/gen_100.csv")
 
-f_name_opt = "82"
+global f_name_opt
+f_name_opt = "gen"
 
 class my_dataloader(Dataset):
-    def __init__(self, is_train, is_val):
+    def __init__(self, is_train, is_val, is_gen = False):
         self.is_train = is_train
         self.is_val = is_val
+        self.is_gen = is_gen
         train_converter = {2: lambda s: (ord(s)-ord('A'))}
         test_converter = {1: lambda s: (ord(s)-ord('A'))}
 
-        if is_val:
+        if is_gen:
+            path = GEN_PATH
+        elif is_val:
             path = VAL_PATH
         else:
-            path = TRA_PATH
+            path = TRAIN_PATH   ####### changed 
+        
 
         if is_train:
             self.data = np.loadtxt(
@@ -97,6 +103,9 @@ class my_dataloader(Dataset):
         if debug_opt:
             print(_input.shape)  
             print(digit.shape)
+            
+        if self.is_gen:                 ####### gerated of GAN (remove it after GAN training)
+            return _input, digit, _id
 
         if self.is_train:
             return self.trans(_input), digit, _id
@@ -135,7 +144,8 @@ class my_dataloader(Dataset):
             print(num_digit)
             print("letter statistic")
             print(num_letters)
-
+            
+            '''
             plt.figure(0)
             plt.subplot(1,3,1)
             plt.bar(np.arange(10),num_digit)
@@ -146,15 +156,44 @@ class my_dataloader(Dataset):
             plt.subplot(1,3,3)
             plt.bar(np.arange(256),pixel_statistics)
             plt.title("pixel hist")
-            if not no_monitor:
-                plt.show()
-            else:
-                f_name = f_name_opt + "train_digit_letter_pixel_stats.png"
-                if self.is_val:
-                    f_name = 'val_'+f_name
-                f_name = os.path.join(GRAPH_PATH, f_name)
+            '''
+            
+            for i in range(3):
                 
-                plt.savefig(f_name)
+                if i == 0:
+                    plt.figure(0)
+                    plt.clf()
+                    plt.bar(np.arange(10),num_digit)
+                    title = "digit hist"
+                    plt.title(title)
+                    plt.xlabel("digit")
+                elif i==1:
+                    plt.figure(0)
+                    plt.clf()
+                    plt.bar(np.arange(26),num_letters)
+                    title = "letter hist"
+                    plt.title(title)
+                    plt.xlabel("letter")
+                    plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25],
+                               labels=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
+                else:
+                    plt.figure(0)
+                    plt.clf()
+                    plt.bar(np.arange(256),pixel_statistics)
+                    title = "pixel hist"
+                    plt.title(title)
+                    
+                if not no_monitor:
+                    plt.show()
+                else:
+                    f_name = f_name_opt + title + ".png"
+                    if self.is_val:
+                        f_name = 'val_'+f_name
+                    f_name = os.path.join(GRAPH_PATH, f_name)
+                    
+                    plt.savefig(f_name)
+                
+            
         
             plt.figure(1)
             plt.bar(np.arange(256)[5:],pixel_statistics[5:])
@@ -191,7 +230,7 @@ class my_dataloader(Dataset):
             print("----------------------------------")
             print("letter statistic")
             print(num_letters)
-
+            '''
             plt.figure(2)
             plt.subplot(1,2,1)
             plt.bar(np.arange(26),num_letters)
@@ -199,11 +238,45 @@ class my_dataloader(Dataset):
             plt.subplot(1,2,2)
             plt.bar(np.arange(256),pixel_statistics)
             plt.title("pixel hist")
-            if not no_monitor:
-                plt.show()
-            else:
-                f_name = os.path.join(GRAPH_PATH, f_name_opt + "test_letter_pixel_stats.png")
-                plt.savefig(f_name)
+            '''
+            for i in range(2):
+                if i==0:
+                    plt.figure(2)
+                    plt.clf()
+                    plt.bar(np.arange(26),num_letters)  
+                    
+                    params = {'xtick.labelsize':'large',
+                              'ytick.labelsize':'large',
+                              'axes.titlesize':35,
+                              'axes.labelsize':35
+                    }
+                    plt.rcParams.update(params)
+                    
+                    
+                    title = "letter hist"
+                    plt.title(title)
+                    plt.xlabel("letter")
+                    plt.xticks([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25],
+                               labels=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'])
+                    plt.yticks([0,200,400,600,800])
+                    
+                    axes = plt.gca()
+                    axes.xaxis.label.set_size(30)
+                    axes.yaxis.label.set_size(30)
+                    
+                   
+                else:
+                    plt.figure(2)
+                    plt.clf()
+                    plt.bar(np.arange(256),pixel_statistics)
+                    title = "pixel hist"
+                    plt.title(title)
+                
+                if not no_monitor:
+                    plt.show()
+                else:
+                    f_name = os.path.join(GRAPH_PATH, f_name_opt + title + ".png")
+                    plt.savefig(f_name)
         
             plt.figure(3)
             plt.bar(np.arange(256)[5:],pixel_statistics[5:])
@@ -233,13 +306,14 @@ def image_plot(input, digit, letter, idx):
     plt.title(title)
 
 if __name__ == "__main__":
+    train_data = my_dataloader(False,False,False)
+    val_data = my_dataloader(True, False,False)
     A = my_dataloader(True,False)
-    #B = my_dataloader(True, True)
-    #A.statistics()
-    #B.statistics()
-    #B = my_dataloader(False,False)
-    #B.statistics()
-    A.__getitem__(1)
+    
+    f_name_opt = "train"
+    val_data.statistics()
+    f_name_opt = "test"
+    train_data.statistics()
 
     print("train dataset mean :"+str(A.mean)+",std :"+str(A.std))
     #print("test dataset mean :"+str(B.mean)+",std :"+str(B.std))

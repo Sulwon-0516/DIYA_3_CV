@@ -21,7 +21,7 @@ class VisdomLinePlotter(object):
     def plot(self, var_name, split_name, title_name, x, y):
         if var_name not in self.figs:
             self.figs[var_name] = self.viz.line(
-                X = x, 
+                X = x.unsqueeze(0),  ### added unsqueeze for  GAN
                 Y = y.unsqueeze(0), 
                 env = self.env, 
                 opts = dict(
